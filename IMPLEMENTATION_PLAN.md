@@ -11,26 +11,26 @@ Agentic AI Stock Analyzer which uses Microsoft Agent Framework.
 
 ---
 
-## ⏹️ Milestone 1 — Local Stock Price Agent
+## ✅ Milestone 1 — Local Stock Price Agent
 
 > Goal: Build agent using Microsoft Agent Framework, run agent locally, fetch stock price using user input.
 
-- ⏹️ Deploy a foundation model (e.g., GPT-4) in Azure AI Foundry
-- ⏹️ Configure local agent (Python) to connect to AI Foundry model endpoint
-- ⏹️ Accept user query: "What's the price of Tesla?"
-- ⏹️ Use AI model to extract ticker or company name from input
-- ⏹️ Call stock price API (e.g., `yfinance`, Twelve Data) via agent tools
-- ⏹️ Return clean response with current stock price
-- ⏹️ Agent runs locally but uses Azure AI Foundry model 
+- ✅ Deploy a foundation model (e.g., GPT-4) in Azure AI Foundry
+- ✅ Configure local agent (Python) to connect to the AI Foundry model endpoint (model-level only)
+- ✅ Accept user query: "What's the price of Tesla?"
+- ✅ Use AI model to extract ticker or company name from input
+- ✅ Call stock price API (e.g., `yfinance`, Twelve Data) via agent tools
+- ✅ Return clean response with current stock price
+- ✅ Agent runs locally but uses Azure AI Foundry model (no agent registry)
 
 ---
 
 ## ⏹️ Milestone 2 — Deploy Agent to Azure
 
-> Goal: Move local agent to Azure AI Foundry (Agent Service)
+> Goal: Move local agent to Azure AI Foundry (Agent Service, agent registry enabled)
 
 - ⏹️ Package the stock agent code
-- ⏹️ Deploy to Azure AI Foundry (single-agent)
+- ⏹️ Deploy to Azure AI Foundry (register agent in agent registry)
 - ⏹️ Configure environment + endpoint
 - ⏹️ Test via Azure Playground or API
 - ⏹️ Optional: expose via web or chat frontend
