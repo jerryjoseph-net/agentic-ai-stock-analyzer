@@ -116,7 +116,7 @@ def test_error_handling():
     print("🔧 Testing error handling...")
     
     # Test empty query
-    with patch('agents.stock_agent.AzureOpenAIChatClient') as mock_azure_client:
+    with patch('src.agents.stock_agent.AzureOpenAIChatClient') as mock_azure_client:
         mock_chat_client = MockChatClient("TSLA")
         mock_azure_client.return_value = mock_chat_client
         agent = StockAgent()

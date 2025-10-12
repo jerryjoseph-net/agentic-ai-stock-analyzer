@@ -5,14 +5,10 @@ Run only when you want to verify real connectivity and API response.
 """
 import pytest
 import asyncio
-import os
 from src.agents.stock_agent import StockAgent
 from src.utils.exceptions import AgentError
 
-@pytest.mark.skipif(
-    not (StockAgent().config.azure_ai_api_key and StockAgent().config.azure_ai_endpoint),
-    reason="Azure credentials not set in .env"
-)
+@pytest.mark.live
 def test_real_azure_ticker_extraction():
     """Test real Azure OpenAI integration - only runs with explicit environment setup."""
     agent = StockAgent()

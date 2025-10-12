@@ -61,7 +61,7 @@ class TestStockAgent:
     @pytest.fixture
     def stock_agent(self, mock_config, mock_azure_client):
         """Create StockAgent instance for testing."""
-        with patch('agents.stock_agent.get_config', return_value=mock_config):
+        with patch('src.agents.stock_agent.get_config', return_value=mock_config):
             return StockAgent(config=mock_config, chat_client=mock_azure_client)
     
     @pytest.mark.parametrize("query,expected_ticker", [

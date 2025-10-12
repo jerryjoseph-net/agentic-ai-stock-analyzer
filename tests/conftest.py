@@ -7,6 +7,21 @@ import sys
 # Add src to Python path for testing
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
+def pytest_addoption(parser):
+    """Add custom command line options for pytest."""
+    parser.addoption(
+        "--include-live",
+        action="store_true",
+        default=False,
+        help="Include live integration tests that require real Azure services"
+    )
+
+def pytest_configure(config):
+    """Configure pytest based on command line options."""
+    if config.getoption("--include-live"):
+        # Remove the default filter that excludes live tests
+        config.option.markexpr = "live or not live"
+
 @pytest.fixture
 def mock_azure_openai_client():
     """Mock Azure OpenAI client for testing."""

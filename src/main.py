@@ -43,6 +43,9 @@ class StockAnalyzerCLI:
         Returns:
             Formatted response
         """
+        if self.stock_agent is None:
+            return "❌ Stock agent not initialized. Please run setup first."
+            
         try:
             response = await self.stock_agent.run(query)
             if response.messages and len(response.messages) > 0:
