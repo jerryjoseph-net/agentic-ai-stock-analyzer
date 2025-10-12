@@ -126,48 +126,48 @@ jobs:
 
   # Deploy to test env for push events to main and any feature/* branch
 
-  deploy-test:
-    name: Deploy to Test
-    runs-on: ubuntu-latest
-    needs: [build-test]
-    if: github.event_name == 'push'
-    environment: 'test'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#   deploy-test:
+#     name: Deploy to Test
+#     runs-on: ubuntu-latest
+#     needs: [build-test]
+#     if: github.event_name == 'push'
+#     environment: 'test'
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Install Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+#       - name: Install Azure CLI
+#         run: |
+#           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+#       - name: Azure Login
+#         uses: azure/login@v1
+#         with:
+#           client-id: ${{ secrets.AZURE_CLIENT_ID }}
+#           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+#           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy infrastructure
-        run: |
-          az deployment sub create \
-            --location swedencentral \
-            --template-file infra/main.bicep \
-            --parameters environmentName=test
+#       - name: Deploy infrastructure
+#         run: |
+#           az deployment sub create \
+#             --location swedencentral \
+#             --template-file infra/main.bicep \
+#             --parameters environmentName=test
 
-      - name: Run post-deployment configuration
-        run: |
-          chmod +x ./scripts/post-deploy.sh
-          ./scripts/post-deploy.sh
-        env:
-          AZURE_AI_FOUNDRY_PROJECT_NAME: "experiment-jerryjoseph-0023"
-          AZURE_AI_FOUNDRY_ENDPOINT: ${{ secrets.AZURE_AI_FOUNDRY_ENDPOINT }}
-          KEY_VAULT_NAME: "test-stockanalyzer-kv"
-          AI_FOUNDRY_RESOURCE_GROUP: "rg-experiment-jerryjoseph-0023"
+#       - name: Run post-deployment configuration
+#         run: |
+#           chmod +x ./scripts/post-deploy.sh
+#           ./scripts/post-deploy.sh
+#         env:
+#           AZURE_AI_FOUNDRY_PROJECT_NAME: "experiment-jerryjoseph-0023"
+#           AZURE_AI_FOUNDRY_ENDPOINT: ${{ secrets.AZURE_AI_FOUNDRY_ENDPOINT }}
+#           KEY_VAULT_NAME: "test-stockanalyzer-kv"
+#           AI_FOUNDRY_RESOURCE_GROUP: "rg-experiment-jerryjoseph-0023"
 
-      - name: Run smoke tests
-        run: |
-          # Add smoke tests here to verify deployment
-          echo "Running smoke tests against test environment..."
-          # python tests/e2e/test_deployed_agent.py
+#       - name: Run smoke tests
+#         run: |
+#           # Add smoke tests here to verify deployment
+#           echo "Running smoke tests against test environment..."
+#           # python tests/e2e/test_deployed_agent.py
 
   # TODO: Add production deployment job 
