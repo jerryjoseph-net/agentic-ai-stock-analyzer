@@ -4,20 +4,12 @@ import logging
 import yfinance as yf
 from datetime import datetime
 from typing import Dict, Any
+
 from agent_framework.azure import AzureOpenAIChatClient
 from agent_framework import BaseAgent, AgentRunResponse, ChatMessage
 
-try:
-    # Relative imports (for package use)
-    from ..utils.exceptions import StockNotFoundError, APIRateLimitError, AgentError
-    from ..utils.config import get_config
-except ImportError:
-    # Absolute imports (for testing)
-    import sys
-    import os
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from utils.exceptions import StockNotFoundError, APIRateLimitError, AgentError
-    from utils.config import get_config
+from ..utils.exceptions import StockNotFoundError, APIRateLimitError, AgentError
+from ..utils.config import get_config
 
 logger = logging.getLogger(__name__)
 
