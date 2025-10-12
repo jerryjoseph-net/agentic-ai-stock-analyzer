@@ -9,10 +9,28 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "Type check passed."
 
-Write-Host "Running tests..."
-$TestResult = & .venv/Scripts/python.exe -m pytest tests/
+
+
+Write-Host "Running unit tests..."
+$UnitTestResult = & .venv/Scripts/python.exe -m pytest tests/unit/ -v
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Tests failed. Aborting commit."
+    Write-Host "Unit tests failed. Aborting commit."
+    exit 1
+}
+Write-Host "Unit tests passed."
+
+Write-Host "Running unit tests with coverage..."
+$CoverageResult = & .venv/Scripts/python.exe -m pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-fail-under=40
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Unit test coverage below 40%. Aborting commit."
+    exit 1
+}
+Write-Host "Unit test coverage is above 40%."
+
+Write-Host "Running all tests..."
+$AllTestResult = & .venv/Scripts/python.exe -m pytest tests/ -v
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Some tests failed. Aborting commit."
     exit 1
 }
 Write-Host "All tests passed."
