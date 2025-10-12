@@ -25,13 +25,20 @@ Agentic AI Stock Analyzer which uses Microsoft Agent Framework.
 
 ---
 
-## ⏹️ Milestone 2 — Deploy Agent to Azure
+## ✅ Milestone 2 — Deploy Agent to Azure
 
 > Goal: Move local agent to Azure AI Foundry (Agent Service, agent registry enabled)
 
-- ⏹️ Package the stock agent code
-- ⏹️ Deploy to Azure AI Foundry (register agent in agent registry)
-- ⏹️ Configure environment + endpoint
+- ✅ Package the stock agent code
+- ✅ Create complete Bicep infrastructure templates
+- ✅ Implement Azure naming conventions (`<env>-stockanalyzer-<service>`)
+- ✅ Set up CI/CD pipeline with GitHub Actions
+- ✅ Configure Azure resource group management
+- ✅ Integrate Key Vault for secure secret storage
+- ✅ Add Application Insights and monitoring
+- ✅ Create managed identity for secure authentication
+- ✅ Reference existing Azure AI Foundry project
+- 🚧 Deploy to Azure AI Foundry (register agent in agent registry)
 - ⏹️ Test via Azure Playground or API
 - ⏹️ Optional: expose via web or chat frontend
 

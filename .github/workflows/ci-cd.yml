@@ -1,0 +1,158 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/*'
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.11'
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+jobs:
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 mypy pytest-cov
+
+      - name: Run flake8 linting
+        run: |
+          flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run mypy type checking
+        run: |
+          mypy src/ --ignore-missing-imports
+
+      - name: Run unit tests with coverage
+        run: |
+          pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+        env:
+          AZURE_AI_ENDPOINT: "https://test.openai.azure.com/"
+          AZURE_AI_API_KEY: "test-key"
+          AZURE_AI_MODEL_DEPLOYMENT: "o3-mini"
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ -v
+        env:
+          AZURE_AI_ENDPOINT: "https://test.openai.azure.com/"
+          AZURE_AI_API_KEY: "test-key"
+          AZURE_AI_MODEL_DEPLOYMENT: "o3-mini"
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Validate Bicep templates
+        run: |
+          az bicep build --file infra/main.bicep
+
+      - name: Infrastructure Preview (What-If)
+        run: |
+          az deployment sub what-if \
+            --location swedencentral \
+            --template-file infra/main.bicep \
+            --parameters environmentName=test
+
+  # Deploy to test env for push events to main and any feature/* branch
+
+  deploy-test:
+    name: Deploy to Test
+    runs-on: ubuntu-latest
+    needs: [build-test]
+    if: github.event_name == 'push'
+    environment: 'test'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy infrastructure
+        run: |
+          az deployment sub create \
+            --location swedencentral \
+            --template-file infra/main.bicep \
+            --parameters environmentName=test
+
+      - name: Run post-deployment configuration
+        run: |
+          chmod +x ./scripts/post-deploy.sh
+          ./scripts/post-deploy.sh
+        env:
+          AZURE_AI_FOUNDRY_PROJECT_NAME: "experiment-jerryjoseph-0023"
+          AZURE_AI_FOUNDRY_ENDPOINT: ${{ secrets.AZURE_AI_FOUNDRY_ENDPOINT }}
+          KEY_VAULT_NAME: "test-stockanalyzer-kv"
+          AI_FOUNDRY_RESOURCE_GROUP: "rg-experiment-jerryjoseph-0023"
+
+      - name: Run smoke tests
+        run: |
+          # Add smoke tests here to verify deployment
+          echo "Running smoke tests against test environment..."
+          # python tests/e2e/test_deployed_agent.py
+
+  # TODO: Add production deployment job 
