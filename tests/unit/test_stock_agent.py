@@ -23,7 +23,7 @@ class TestStockAgent:
             azure_ai_endpoint="https://test.openai.azure.com/",
             azure_ai_api_key="test-key",
             azure_ai_api_version="2024-12-01-preview",
-            azure_ai_model_deployment="o3-mini"
+            azure_ai_model_deployment="gpt-4.1-nano"
         )
     
     @pytest.fixture

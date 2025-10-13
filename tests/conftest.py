@@ -43,7 +43,7 @@ def mock_config():
     mock_config.azure_ai_endpoint = "https://test-endpoint.openai.azure.com/"
     mock_config.azure_ai_api_key = "test-api-key"
     mock_config.azure_ai_api_version = "2024-12-01-preview"
-    mock_config.azure_ai_model_deployment = "o3-mini"
+    mock_config.azure_ai_model_deployment = "gpt-4.1-nano"
     return mock_config
 
 @pytest.fixture

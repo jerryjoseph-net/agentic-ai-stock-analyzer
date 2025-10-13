@@ -19,7 +19,7 @@ For milestone details and roadmap, see [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION
 
 ### Local Development
 - **Local Agent**: Microsoft Agent Framework running locally
-- **AI Model**: o3-mini deployed in Azure AI Foundry for ticker extraction
+- **AI Model**: gpt-4.1-nano deployed in Azure AI Foundry for ticker extraction
 - **Stock Data**: yfinance for real-time stock prices
 - **Testing**: pytest with TDD approach
 
@@ -78,7 +78,7 @@ cp .env.example .env
 # Edit .env with your Azure AI Foundry details:
 # AZURE_AI_ENDPOINT=https://your-project.aiservices.azure.com
 # AZURE_AI_API_KEY=your_api_key_here
-# AZURE_AI_MODEL_DEPLOYMENT=o3-mini
+# AZURE_AI_MODEL_DEPLOYMENT=gpt-4.1-nano
 ```
 
 ### Azure Deployment Setup
