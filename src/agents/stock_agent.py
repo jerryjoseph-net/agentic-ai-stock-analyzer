@@ -238,32 +238,3 @@ class StockAgent(BaseAgent):
         return (f"{stock_data['company_name']} ({stock_data['ticker']}): "
                 f"${stock_data['price']:.2f} {stock_data['currency']} "
                 f"({stock_data['change']})")
-    
-    async def _process_query(self, query: str) -> str:
-        """Process user query end-to-end.
-        
-        Args:
-            query: User's natural language query
-            
-        Returns:
-            Formatted response with stock price
-            
-        Raises:
-            AgentError: If processing fails
-        """
-        try:
-            # Extract ticker from query
-            ticker = await self._extract_ticker(query)
-            
-            # Fetch stock price
-            stock_data = self._fetch_stock_price(ticker)
-            
-            # Format and return response
-            return self._format_response(stock_data)
-            
-        except (StockNotFoundError, APIRateLimitError) as e:
-            logger.error(f"Query processing failed for '{query}': {e}")
-            raise AgentError(f"Failed to process query: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error processing '{query}': {e}")
-            raise AgentError(f"Unexpected error: {e}")

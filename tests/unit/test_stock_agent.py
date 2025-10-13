@@ -1,15 +1,8 @@
 """Unit tests for StockAgent using TDD approach - Public API only."""
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime
-import sys
-import os
-
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from src.agents.stock_agent import StockAgent
-from src.utils.exceptions import StockNotFoundError, APIRateLimitError, AgentError
 
 
 class TestStockAgent:
