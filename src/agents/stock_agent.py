@@ -8,8 +8,13 @@ from typing import Dict, Any
 from agent_framework.azure import AzureOpenAIChatClient
 from agent_framework import BaseAgent, AgentRunResponse, ChatMessage
 
-from ..utils.exceptions import StockNotFoundError, APIRateLimitError, AgentError
-from ..utils.config import get_config
+try:
+    from src.utils.exceptions import StockNotFoundError, APIRateLimitError, AgentError
+    from src.utils.config import get_config
+except ImportError:
+    # Fallback for running from src/ directory directly
+    from utils.exceptions import StockNotFoundError, APIRateLimitError, AgentError  # type: ignore
+    from utils.config import get_config  # type: ignore
 
 logger = logging.getLogger(__name__)
 

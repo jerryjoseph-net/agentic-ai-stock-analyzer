@@ -4,8 +4,13 @@ import logging
 import sys
 from typing import Optional
 
-from utils.exceptions import StockAnalyzerError
-from agents.stock_agent import StockAgent
+try:
+    from src.utils.exceptions import StockAnalyzerError
+    from src.agents.stock_agent import StockAgent
+except ImportError:
+    # Fallback for running from src/ directory directly
+    from utils.exceptions import StockAnalyzerError  # type: ignore
+    from agents.stock_agent import StockAgent  # type: ignore
 
 # Configure logging
 logging.basicConfig(

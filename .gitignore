@@ -1,3 +1,5 @@
+# mypy type check cache
+.mypy_cache/
 
 # Environments
 .env
