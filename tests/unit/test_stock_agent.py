@@ -1,241 +1,169 @@
-"""Unit tests for StockAgent using TDD approach - Public API only."""
+"""Unit tests for stock agent functions using TDD approach."""
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch
 
-from src.agents.stock_agent import StockAgent
+from src.agents.stock_agent import extract_ticker, fetch_stock_price, format_stock_response, validate_ticker
 
 
-class TestStockAgent:
-    """Test cases for StockAgent following TDD principles - Testing only public API."""
+class TestStockAgentFunctions:
+    """Test cases for stock agent functions following TDD principles."""
     
-    @pytest.fixture
-    def mock_config(self):
-        """Mock configuration for testing."""
-        from src.utils.config import AgentConfig
-        return AgentConfig(
-            azure_ai_endpoint="https://test.openai.azure.com/",
-            azure_ai_api_key="test-key",
-            azure_ai_api_version="2024-12-01-preview",
-            azure_ai_model_deployment="gpt-4.1-nano"
-        )
-    
-    @pytest.fixture
-    def mock_azure_client(self):
-        """Mock Azure OpenAI client."""
-        client = Mock()
-        mock_agent = AsyncMock()
-        
-        # Mock response with text attribute (like real Azure responses)
-        class MockMessage:
-            def __init__(self, text):
-                self.text = text
-        
-        class MockResponse:
-            def __init__(self, ticker):
-                self.messages = [MockMessage(ticker)]
-                self.response_id = f"resp-{ticker}"
-        
-        mock_agent.run.return_value = MockResponse("TSLA")
-        client.create_agent.return_value = mock_agent
-        return client
-    
-    @pytest.fixture
-    def mock_yfinance_success(self):
-        """Mock successful yfinance response."""
-        mock_ticker = Mock()
-        mock_ticker.info = {
-            "regularMarketPrice": 250.45,
-            "longName": "Tesla Inc",
-            "currency": "USD",
-            "symbol": "TSLA"
-        }
-        return mock_ticker
-    
-    @pytest.fixture
-    def stock_agent(self, mock_config, mock_azure_client):
-        """Create StockAgent instance for testing."""
-        with patch('src.agents.stock_agent.get_config', return_value=mock_config):
-            return StockAgent(config=mock_config, chat_client=mock_azure_client)
-    
+    # Test extract_ticker function
     @pytest.mark.parametrize("query,expected_ticker", [
         ("What's the price of Tesla?", "TSLA"),
         ("How much is Apple stock?", "AAPL"),
         ("NVIDIA price", "NVDA"),
-        ("Tell me about Microsoft shares", "MSFT"),
-        ("GOOGL current value", "GOOGL"),
-        ("amazon stock price", "AMZN"),
+        ("Microsoft today", "MSFT"),
+        ("Amazon stock", "AMZN"),
+        ("Google share price", "GOOGL"),
+        ("Meta stock price", "META"),
+        ("Tell me about TSLA", "TSLA"),
+        ("Show me AAPL", "AAPL"),
+        ("", "UNKNOWN"),
+        ("What's the weather?", "UNKNOWN"),
+        ("Random text", "UNKNOWN"),
     ])
-    @pytest.mark.asyncio
-    async def test_run_with_various_queries(self, stock_agent, mock_yfinance_success, query, expected_ticker):
-        """Test the run method with various stock queries - only public API."""
-        # Update mock to return the expected ticker
-        class MockMessage:
-            def __init__(self, text):
-                self.text = text
+    def test_extract_ticker_various_queries(self, query, expected_ticker):
+        """Test ticker extraction from various query formats."""
+        result = extract_ticker(query)
+        assert result == expected_ticker
+
+    def test_extract_ticker_case_insensitive(self):
+        """Test that ticker extraction is case insensitive for company names."""
+        assert extract_ticker("tesla stock") == "TSLA"
+        assert extract_ticker("TESLA stock") == "TSLA"
+        assert extract_ticker("Tesla stock") == "TSLA"
+
+    def test_extract_ticker_direct_symbols(self):
+        """Test extraction of direct ticker symbols."""
+        assert extract_ticker("AAPL") == "AAPL"
+        assert extract_ticker("Check MSFT today") == "MSFT"
+        assert extract_ticker("GOOGL and AMZN") == "GOOGL"  # First match
+
+    # Test validate_ticker function
+    @pytest.mark.parametrize("ticker,expected_valid", [
+        ("TSLA", True),
+        ("AAPL", True),
+        ("MSFT", True),
+        ("A", True),
+        ("GOOGL", True),
+        ("", False),
+        ("UNKNOWN", False),
+        ("123", False),
+        ("TOOLONG", False),  # More than 5 chars
+        ("tsla", False),     # Lowercase
+        ("TS-LA", False),    # Invalid chars
+    ])
+    def test_validate_ticker_formats(self, ticker, expected_valid):
+        """Test ticker validation for various formats."""
+        result = validate_ticker(ticker)
+        assert result == expected_valid
+
+    # Test fetch_stock_price function
+    @patch('src.agents.stock_agent.yf.Ticker')
+    def test_fetch_stock_price_success(self, mock_ticker_class):
+        """Test successful stock price fetching."""
+        # Setup mock yfinance response
+        mock_ticker = Mock()
+        mock_ticker.info = {
+            "regularMarketPrice": 250.45,
+            "longName": "Tesla, Inc.",
+            "currency": "USD"
+        }
+        mock_ticker_class.return_value = mock_ticker
         
-        class MockResponse:
-            def __init__(self, ticker):
-                self.messages = [MockMessage(ticker)]
-                self.response_id = f"resp-{ticker}"
+        result = fetch_stock_price("TSLA")
         
-        mock_agent = AsyncMock()
-        mock_agent.run.return_value = MockResponse(expected_ticker)
-        stock_agent.chat_client.create_agent.return_value = mock_agent
+        assert result["ticker"] == "TSLA"
+        assert result["company_name"] == "Tesla, Inc."
+        assert result["price"] == 250.45
+        assert result["currency"] == "USD"
+        assert "timestamp" in result
+        assert result["change"] == "+0.00%"
+
+    @patch('src.agents.stock_agent.yf.Ticker')
+    def test_fetch_stock_price_fallback_to_history(self, mock_ticker_class):
+        """Test fallback to history when regularMarketPrice not available."""
+        # Setup mock for fallback scenario
+        mock_ticker = Mock()
+        mock_ticker.info = {}  # No regularMarketPrice
         
-        # Mock yfinance for stock price fetching
-        with patch('src.agents.stock_agent.yf.Ticker') as mock_yf_ticker:
-            mock_yfinance_success.info["longName"] = f"{expected_ticker} Company"
-            mock_yf_ticker.return_value = mock_yfinance_success
-            
-            result = await stock_agent.run(query)
-            
-            # Verify the agent returns a proper response
-            assert result.messages is not None
-            assert len(result.messages) > 0
-            # The formatted response should contain the ticker and company info
-            response_text = result.messages[0].text
-            assert expected_ticker in response_text
-            assert "$250.45" in response_text
-    
-    @pytest.mark.asyncio
-    async def test_run_with_empty_query(self, stock_agent):
-        """Test run method with empty query."""
-        result = await stock_agent.run("")
-        assert result.response_id == "no-query"
-        assert result.messages == []
-    
-    @pytest.mark.asyncio
-    async def test_run_with_invalid_stock_ticker(self, stock_agent):
-        """Test run method when stock ticker is invalid/not found."""
-        # Mock AI to return an invalid ticker
-        class MockMessage:
-            def __init__(self, text):
-                self.text = text
+        # Mock history data
+        import pandas as pd
+        mock_history = pd.DataFrame({'Close': [245.67]})
+        mock_ticker.history.return_value = mock_history
+        mock_ticker_class.return_value = mock_ticker
         
-        class MockResponse:
-            def __init__(self, ticker):
-                self.messages = [MockMessage(ticker)]
-                self.response_id = f"resp-{ticker}"
+        result = fetch_stock_price("TSLA")
         
-        mock_agent = AsyncMock()
-        mock_agent.run.return_value = MockResponse("INVALID")
-        stock_agent.chat_client.create_agent.return_value = mock_agent
+        assert result["ticker"] == "TSLA"
+        assert result["price"] == 245.67
+
+    @patch('src.agents.stock_agent.yf.Ticker')
+    def test_fetch_stock_price_invalid_ticker(self, mock_ticker_class):
+        """Test handling of invalid ticker symbols."""
+        from src.utils.exceptions import StockNotFoundError
         
-        # Mock yfinance to simulate stock not found
-        with patch('src.agents.stock_agent.yf.Ticker') as mock_yf_ticker:
-            mock_ticker = Mock()
-            mock_ticker.info = {}  # Empty info indicates invalid ticker
-            mock_ticker.history.return_value.empty = True  # No historical data
-            mock_yf_ticker.return_value = mock_ticker
-            
-            result = await stock_agent.run("What's the price of INVALID?")
-            
-            # Should return an error response
-            assert result.response_id == "error"
-            assert len(result.messages) > 0
-            assert "couldn't process" in result.messages[0].text.lower()
-    
-    @pytest.mark.asyncio
-    async def test_run_with_ai_client_error(self, stock_agent):
-        """Test run method when AI client fails."""
-        # Mock AI client to raise an exception
-        mock_agent = AsyncMock()
-        mock_agent.run.side_effect = Exception("AI API Error")
-        stock_agent.chat_client.create_agent.return_value = mock_agent
+        # Setup mock for invalid ticker
+        mock_ticker = Mock()
+        mock_ticker.info = {}
+        import pandas as pd
+        mock_ticker.history.return_value = pd.DataFrame()  # Empty history
+        mock_ticker_class.return_value = mock_ticker
         
-        result = await stock_agent.run("What's Tesla's price?")
+        with pytest.raises(StockNotFoundError):
+            fetch_stock_price("INVALID")
+
+    def test_fetch_stock_price_invalid_format(self):
+        """Test rejection of invalid ticker formats."""
+        from src.utils.exceptions import StockNotFoundError
         
-        # Should return an error response
-        assert result.response_id == "error"
-        assert len(result.messages) > 0
-        assert "couldn't process" in result.messages[0].text.lower()
-    
-    @pytest.mark.asyncio
-    async def test_run_with_yfinance_timeout(self, stock_agent):
-        """Test run method when yfinance times out."""
-        # Mock AI to return valid ticker
-        class MockMessage:
-            def __init__(self, text):
-                self.text = text
+        with pytest.raises(StockNotFoundError):
+            fetch_stock_price("invalid")
         
-        class MockResponse:
-            def __init__(self, ticker):
-                self.messages = [MockMessage(ticker)]
-                self.response_id = f"resp-{ticker}"
+        with pytest.raises(StockNotFoundError):
+            fetch_stock_price("")
+
+    # Test format_stock_response function
+    def test_format_stock_response_complete_data(self):
+        """Test formatting with complete stock data."""
+        stock_data = {
+            "ticker": "TSLA",
+            "company_name": "Tesla, Inc.",
+            "price": 250.45,
+            "currency": "USD",
+            "change": "+2.15%"
+        }
         
-        mock_agent = AsyncMock()
-        mock_agent.run.return_value = MockResponse("TSLA")
-        stock_agent.chat_client.create_agent.return_value = mock_agent
+        result = format_stock_response(stock_data)
+        expected = "Tesla, Inc. (TSLA): $250.45 USD (+2.15%)"
+        assert result == expected
+
+    def test_format_stock_response_minimal_data(self):
+        """Test formatting with minimal stock data."""
+        stock_data = {
+            "ticker": "AAPL",
+            "company_name": "Apple Inc.",
+            "price": 175.50,
+            "currency": "USD",
+            "change": "+0.00%"
+        }
         
-        # Mock yfinance to timeout
-        with patch('src.agents.stock_agent.yf.Ticker') as mock_yf_ticker:
-            mock_yf_ticker.side_effect = TimeoutError("Request timeout")
-            
-            result = await stock_agent.run("What's Tesla's price?")
-            
-            # Should return an error response
-            assert result.response_id == "error"
-            assert len(result.messages) > 0
-            assert "couldn't process" in result.messages[0].text.lower()
-    
-    @pytest.mark.asyncio
-    async def test_run_successful_workflow(self, stock_agent, mock_yfinance_success):
-        """Test complete successful workflow through public run method."""
-        query = "What's the price of Tesla?"
+        result = format_stock_response(stock_data)
+        expected = "Apple Inc. (AAPL): $175.50 USD (+0.00%)"
+        assert result == expected
+
+    def test_format_stock_response_decimal_precision(self):
+        """Test that price formatting shows proper decimal precision."""
+        stock_data = {
+            "ticker": "MSFT",
+            "company_name": "Microsoft Corporation",
+            "price": 299.999,
+            "currency": "USD",
+            "change": "+1.23%"
+        }
         
-        # Mock successful AI ticker extraction
-        class MockMessage:
-            def __init__(self, text):
-                self.text = text
-        
-        class MockResponse:
-            def __init__(self, ticker):
-                self.messages = [MockMessage(ticker)]
-                self.response_id = f"resp-{ticker}"
-        
-        mock_agent = AsyncMock()
-        mock_agent.run.return_value = MockResponse("TSLA")
-        stock_agent.chat_client.create_agent.return_value = mock_agent
-        
-        # Mock successful yfinance call
-        with patch('src.agents.stock_agent.yf.Ticker') as mock_yf_ticker:
-            mock_yf_ticker.return_value = mock_yfinance_success
-            
-            result = await stock_agent.run(query)
-            
-            # Verify successful response
-            assert result.response_id == "stock-info-TSLA"
-            assert len(result.messages) > 0
-            
-            response_text = result.messages[0].text
-            assert "Tesla Inc" in response_text
-            assert "TSLA" in response_text
-            assert "$250.45" in response_text
-            assert "USD" in response_text
-    
-    @pytest.mark.asyncio
-    async def test_run_with_list_messages(self, stock_agent, mock_yfinance_success):
-        """Test run method with list of messages instead of string."""
-        messages = ["What's the price of Tesla?"]
-        
-        # Mock successful workflow
-        class MockMessage:
-            def __init__(self, text):
-                self.text = text
-        
-        class MockResponse:
-            def __init__(self, ticker):
-                self.messages = [MockMessage(ticker)]
-                self.response_id = f"resp-{ticker}"
-        
-        mock_agent = AsyncMock()
-        mock_agent.run.return_value = MockResponse("TSLA")
-        stock_agent.chat_client.create_agent.return_value = mock_agent
-        
-        with patch('src.agents.stock_agent.yf.Ticker') as mock_yf_ticker:
-            mock_yf_ticker.return_value = mock_yfinance_success
-            
-            result = await stock_agent.run(messages)
-            
-            assert result.response_id == "stock-info-TSLA"
-            assert "Tesla Inc" in result.messages[0].text
+        result = format_stock_response(stock_data)
+        expected = "Microsoft Corporation (MSFT): $300.00 USD (+1.23%)"
+        assert result == expected
+
