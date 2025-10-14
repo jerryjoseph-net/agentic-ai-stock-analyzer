@@ -52,3 +52,6 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Exclude sample code folder
+.sample_code/

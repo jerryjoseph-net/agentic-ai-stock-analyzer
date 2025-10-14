@@ -48,7 +48,7 @@
 #         agent = StockAgent(
 #             api_key=api_key,
 #             endpoint=endpoint,
-#             deployment_name="o3-mini",
+#             deployment_name="gpt-4.1-nano",
 #             api_version="2024-12-01-preview"
 #         )
         

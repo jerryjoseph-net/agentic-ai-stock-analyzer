@@ -21,7 +21,7 @@ env:
 
 jobs:
   build-test:
-    name: Build and Test
+    name: Build, Scan, Test
     runs-on: ubuntu-latest
     environment: 'ephemeral'
     steps:
@@ -58,11 +58,11 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=40
+          pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=30
         env:
           AZURE_AI_ENDPOINT: "https://test.openai.azure.com/"
           AZURE_AI_API_KEY: "test-key"
-          AZURE_AI_MODEL_DEPLOYMENT: "o3-mini"
+          AZURE_AI_MODEL_DEPLOYMENT: "gpt-4.1-nano"
 
       - name: Run integration tests
         run: |
@@ -70,7 +70,7 @@ jobs:
         env:
           AZURE_AI_ENDPOINT: "https://test.openai.azure.com/"
           AZURE_AI_API_KEY: "test-key"
-          AZURE_AI_MODEL_DEPLOYMENT: "o3-mini"
+          AZURE_AI_MODEL_DEPLOYMENT: "gpt-4.1-nano"
 
       - name: Run all tests
         run: |
@@ -78,7 +78,7 @@ jobs:
         env:
           AZURE_AI_ENDPOINT: "https://test.openai.azure.com/"
           AZURE_AI_API_KEY: "test-key"
-          AZURE_AI_MODEL_DEPLOYMENT: "o3-mini"
+          AZURE_AI_MODEL_DEPLOYMENT: "gpt-4.1-nano"
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3

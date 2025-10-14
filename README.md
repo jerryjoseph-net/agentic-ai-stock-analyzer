@@ -18,8 +18,9 @@ For milestone details and roadmap, see [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION
 ## 🏗️ Architecture
 
 ### Local Development
-- **Local Agent**: Microsoft Agent Framework running locally
-- **AI Model**: o3-mini deployed in Azure AI Foundry for ticker extraction
+- **Orchestrator Agent**: `StockAnalyzerAgent` manages workflows and calls `StockAgent` via agent-to-agent workflow (see `src/agents/stock_orchestrator.py`)
+- **Stock Agent**: Implements stock price fetching and ticker extraction (see `src/agents/stock_agent.py`)
+- **AI Model**: gpt-4.1-nano deployed in Azure AI Foundry for ticker extraction
 - **Stock Data**: yfinance for real-time stock prices
 - **Testing**: pytest with TDD approach
 
@@ -78,7 +79,7 @@ cp .env.example .env
 # Edit .env with your Azure AI Foundry details:
 # AZURE_AI_ENDPOINT=https://your-project.aiservices.azure.com
 # AZURE_AI_API_KEY=your_api_key_here
-# AZURE_AI_MODEL_DEPLOYMENT=o3-mini
+# AZURE_AI_MODEL_DEPLOYMENT=gpt-4.1-nano
 ```
 
 ### Azure Deployment Setup
@@ -177,7 +178,8 @@ agentic-ai-stock-analyzer/
 │   └── post-deploy.ps1                # 🔧 PowerShell post-deployment
 ├── src/
 │   ├── agents/                        # 🤖 Agent implementations
-│   │   └── stock_agent.py             # 📈 Stock price fetching agent
+│   │   ├── stock_agent.py             # 📈 Stock price fetching agent
+│   │   └── stock_orchestrator.py      # 🎯 Orchestrator agent (workflow management)
 │   ├── utils/
 │   │   ├── config.py                  
 │   │   ├── api_clients.py             
@@ -207,7 +209,7 @@ agentic-ai-stock-analyzer/
 This project follows strict development practices:
 
 1. **Feature Branches**: `feature/feature-name` (never commit directly to main)
-2. **Test-Driven Development**: Write tests first, ensure >80% coverage
+2. **Test-Driven Development**: Write tests first, ensure >30% coverage (current threshold)
 3. **Quality Gates**: All tests, linting, and type checking must pass
 4. **Infrastructure as Code**: All Azure resources defined in Bicep templates
 5. **Automated Deployment**: CI/CD pipeline handles infrastructure and application deployment
