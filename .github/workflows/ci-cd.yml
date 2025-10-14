@@ -21,7 +21,7 @@ env:
 
 jobs:
   build-test:
-    name: Build and Test
+    name: Build, Scan, Test
     runs-on: ubuntu-latest
     environment: 'ephemeral'
     steps:
