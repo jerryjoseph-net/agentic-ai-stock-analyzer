@@ -131,29 +131,24 @@ def format_stock_response(
             f"({stock_data['change']})")
 
 
-async def stock_agent_example() -> None:
-    """Example of stock agent using function-based tools."""
-    print("=== Stock Agent Example ===")
-    
-    # For authentication, run `az login` command in terminal
-    async with (
-        AzureCliCredential() as credential,
-        AzureAIAgentClient(async_credential=credential).create_agent(
-            name="StockAgent",
-            instructions="You are a helpful stock analysis agent. Use the provided tools to extract tickers, fetch prices, and format responses.",
-            tools=[extract_ticker, fetch_stock_price, format_stock_response],
-        ) as agent,
-    ):
-        query = "What's the price of Tesla?"
-        print(f"User: {query}")
-        result = await agent.run(query)
-        print(f"Agent: {result}\n")
+def stock_agent_factory(client=None):
+    """Factory for StockAgent instance for orchestration workflows."""
+    if client is None:
+        client = AzureAIAgentClient(async_credential=AzureCliCredential())
+    agent = client.create_agent(
+        name="StockAgent",
+        instructions="You are a helpful stock analysis agent. Use the provided tools to extract tickers, fetch prices, and format responses.",
+        tools=[extract_ticker, fetch_stock_price, format_stock_response],
+    )
+    return agent
 
 
 async def main() -> None:
     """Main entry point for stock agent example."""
-    print("=== Function-based Stock Agent ===")
-    await stock_agent_example()
+    print("=== Stock Agent with Function-based Tools ===\n")
+    
+    # Run stock agent
+    await stock_agent_factory()
 
 
 if __name__ == "__main__":

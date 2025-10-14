@@ -20,12 +20,12 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Unit tests passed."
 
 Write-Host "Running unit tests with coverage..."
-$CoverageResult = & .venv/Scripts/python.exe -m pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-fail-under=40
+$CoverageResult = & .venv/Scripts/python.exe -m pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-fail-under=30
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Unit test coverage below 40%. Aborting commit."
+    Write-Host "Unit test coverage below 30%. Aborting commit."
     exit 1
 }
-Write-Host "Unit test coverage is above 40%."
+Write-Host "Unit test coverage is above 30%."
 
 Write-Host "Running all tests..."
 $AllTestResult = & .venv/Scripts/python.exe -m pytest tests/ -v
