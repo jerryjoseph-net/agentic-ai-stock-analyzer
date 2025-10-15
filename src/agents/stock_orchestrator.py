@@ -8,10 +8,9 @@ multiple specialized agents for comprehensive stock analysis.
 import asyncio
 import logging
 from typing import Any
-from collections.abc import Awaitable, Callable
 from contextlib import AsyncExitStack
 
-from agent_framework import AgentRunUpdateEvent, WorkflowBuilder, WorkflowOutputEvent
+from agent_framework import WorkflowBuilder
 from agent_framework.azure import AzureAIAgentClient
 from azure.identity.aio import AzureCliCredential
 
