@@ -1,12 +1,17 @@
 """Main CLI interface for the Agentic AI Stock Analyzer"""
 
-import sys
 import asyncio
+import logging
+import sys
 from dotenv import load_dotenv
 from agents.stock_orchestrator import StockAnalyzerAgent
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Suppress agent_framework warnings
+logging.getLogger("agent_framework._clients").setLevel(logging.ERROR)
+logging.getLogger("agent_framework").setLevel(logging.ERROR)
 
 async def main():
     if len(sys.argv) > 1:
