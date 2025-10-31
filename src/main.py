@@ -4,7 +4,7 @@ import asyncio
 import logging
 import sys
 from dotenv import load_dotenv
-from agents.stock_orchestrator import StockAnalyzerAgent
+from agents.stock_analyzer_orchestrator import StockAnalyzerOrchestrator
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,8 +18,8 @@ async def main():
         query = " ".join(sys.argv[1:])
     else:
         query = input("Enter your stock query: ").strip()
-    async with StockAnalyzerAgent() as orchestrator:
-        result = await orchestrator.analyze_stock(query, stream=True)
+    async with StockAnalyzerOrchestrator() as orchestrator:
+        result = await orchestrator.analyze_stock(query)
         print(result)
 
 if __name__ == "__main__":
