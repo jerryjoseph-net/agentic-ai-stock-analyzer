@@ -18,9 +18,10 @@ For milestone details and roadmap, see [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION
 ## 🏗️ Architecture
 
 ### Local Development
-- **Orchestrator Agent**: `StockAnalyzerAgent` manages workflows and calls `StockAgent` via agent-to-agent workflow (see `src/agents/stock_orchestrator.py`)
-- **Stock Agent**: Implements stock price fetching and ticker extraction (see `src/agents/stock_agent.py`)
+- **Orchestrator Agent**: `StockAnalyzerOrchestrator` manages multi-agent workflows and coordinates `StockAgent` (see `src/agents/stock_analyzer_orchestrator.py`)
+- **Stock Agent**: Implements stock price fetching, ticker extraction, and response formatting (see `src/agents/stock_agent.py`)
 - **AI Model**: gpt-4.1-nano deployed in Azure AI Foundry for ticker extraction
+- **AI Framework**: Microsoft Agent Framework for agent orchestration and tool execution
 - **Stock Data**: yfinance for real-time stock prices
 - **Testing**: pytest with TDD approach
 
@@ -57,18 +58,23 @@ git clone https://github.com/jerryjoseph-net/agentic-ai-stock-analyzer.git
 cd agentic-ai-stock-analyzer
 ```
 
-#### 2. Create Virtual Environment
+#### 2. Install uv (Much Faster than pip)
 ```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# Linux/Mac
-source venv/bin/activate
+# Install uv globally
+curl -LsSf https://astral.sh/uv/install.sh | sh   # Linux/Mac
+# OR for Windows PowerShell:
+irm https://astral.sh/uv/install.ps1 | iex
 ```
 
-#### 3. Install Dependencies
+#### 3. Setup with uv (Modern Approach)
 ```bash
-pip install -r requirements.txt
+# Create virtual environment and install all dependencies
+uv sync
+
+# This will:
+# - Create .venv/ virtual environment
+# - Install all dependencies from pyproject.toml
+# - Use uv.lock for exact reproducible versions
 ```
 
 #### 4. Configure Environment
@@ -116,13 +122,13 @@ az deployment sub create \
 ## 🎯 Usage
 
 ### Interactive Mode (Recommended)
-```powershell
-.venv\Scripts\python.exe src\main.py
+```bash
+uv run src/main.py
 ```
 
-### Single Query Mode (Recommended)
-```powershell
-.venv\Scripts\python.exe src\main.py "What's the price of Tesla?"
+### Single Query Mode
+```bash
+uv run src/main.py "What's the price of Tesla?"
 ```
 
 ### Example Queries
@@ -133,28 +139,28 @@ az deployment sub create \
 
 ## 🧪 Testing
 
-Run all tests directly using the virtual environment's Python executable:
-```powershell
+Run all tests using uv:
+```bash
 # Run all tests (excluding live)
-.venv\Scripts\python.exe -m pytest tests/
+uv run pytest tests/
 
 # Run all tests (including live)
-.venv\Scripts\python.exe -m pytest tests/ --include-live
+uv run pytest tests/ --include-live
 
 # Run only unit tests (mocked dependencies)
-.venv\Scripts\python.exe -m pytest tests/unit/
+uv run pytest tests/unit/
 
 # Run only integration tests (excluding live)
-.venv\Scripts\python.exe -m pytest tests/integration/
+uv run pytest tests/integration/
 
 # Run only integration tests (including live)
-.venv\Scripts\python.exe -m pytest tests/integration/ --include-live
+uv run pytest tests/integration/ --include-live
 
 # Run with coverage
-.venv\Scripts\python.exe -m pytest --cov=src tests/
+uv run pytest --cov=src tests/
 
 # Run specific test file
-.venv\Scripts\python.exe -m pytest tests/unit/test_stock_agent.py -v
+uv run pytest tests/unit/test_stock_agent.py -v
 ```
 
 ## 📁 Project Structure
@@ -163,9 +169,9 @@ Run all tests directly using the virtual environment's Python executable:
 agentic-ai-stock-analyzer/
 ├── .github/
 │   ├── workflows/
-│   │   └── ci-cd.yml                  # 🚀 CI/CD pipeline automation  
-│   └── .copilot-instructions.md       # 🧠 Development guidelines
-├── infra/                             # 🏗️ Infrastructure as Code
+│   │   └── ci-cd.yml                       # 🚀 CI/CD pipeline automation  
+│   └── .copilot-instructions.md            # 🧠 Development guidelines
+├── infra/                                  # 🏗️ Infrastructure as Code
 │   ├── main.bicep                     
 │   ├── modules/
 │   │   ├── aifoundry.bicep            
@@ -174,34 +180,35 @@ agentic-ai-stock-analyzer/
 │   │   ├── monitoring.bicep           
 │   │   └── secrets.bicep              
 ├── scripts/
-│   ├── post-deploy.sh                 # 🔧 Post-deployment configuration
-│   └── post-deploy.ps1                # 🔧 PowerShell post-deployment
+│   ├── post-deploy.sh                      # 🔧 Post-deployment configuration
+│   └── post-deploy.ps1                     # 🔧 PowerShell post-deployment
 ├── src/
-│   ├── agents/                        # 🤖 Agent implementations
-│   │   ├── stock_agent.py             # 📈 Stock price fetching agent
-│   │   └── stock_orchestrator.py      # 🎯 Orchestrator agent (workflow management)
+│   ├── agents/                             # 🤖 Agent implementations
+│   │   ├── stock_agent.py                  # 📈 Stock price fetching agent
+│   │   └── stock_analyzer_orchestrator.py  # 🎯 Orchestrator agent (multi-agent coordination)
 │   ├── utils/
 │   │   ├── config.py                  
 │   │   ├── api_clients.py             
 │   │   └── exceptions.py              
-│   └── main.py                        # 🎯 Application entry point (CLI interface)
+│   └── main.py                             # 🎯 Application entry point (CLI interface)
 ├── tests/
-│   ├── conftest.py                    # 🔧 Pytest configuration
-│   ├── unit/                          # 🧪 Unit tests (mocked dependencies)
+│   ├── conftest.py                         # 🔧 Pytest configuration
+│   ├── unit/                               # 🧪 Unit tests (mocked dependencies)
 │   │   ├── __init__.py
 │   │   └── test_stock_agent.py        
-│   ├── integration/                   # 🔗 Integration tests 
+│   ├── integration/                        # 🔗 Integration tests 
 │   │   ├── __init__.py
 │   │   ├── test_azure_integration.py  
 │   │   ├── test_azure_live.py         
 │   │   └── test_integration.py        
-│   └── e2e/                           # 🎯 End-to-end tests
+│   └── e2e/                                # 🎯 End-to-end tests
 │       └── test_deployed_agent.py     
-├── requirements.txt                   # 🐍 Python dependencies
-├── pytest.ini                         # 🧪 Pytest configuration
-├── .env.example                       # 🔒 Environment template
-├── IMPLEMENTATION_PLAN.md             # ⭐ Development roadmap
-└── README.md                          # 📖 Project documentation
+├── pyproject.toml                          # 🐍 Python project configuration (dependencies, tools, metadata)
+├── uv.lock                                 # 🔒 Lockfile for reproducible dependency versions
+├── pytest.ini                              # 🧪 Pytest configuration
+├── .env.example                            # 🔒 Environment template
+├── IMPLEMENTATION_PLAN.md                  # ⭐ Development roadmap
+└── README.md                               # 📖 Project documentation
 ```
 
 ## 🔄 Development Workflow
@@ -259,8 +266,8 @@ az deployment sub create \
 ### Getting Help
 
 Check the logs for detailed error messages:
-```powershell
-.venv\Scripts\python.exe src\main.py 2>&1 | Tee-Object app.log
+```bash
+uv run src/main.py 2>&1 | tee app.log
 ```
 
 ## 📄 License

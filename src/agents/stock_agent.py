@@ -131,7 +131,7 @@ def format_stock_response(
             f"({stock_data['change']})")
 
 
-def stock_agent_factory(client=None):
+def stock_agent_factory(client: Any = None) -> Any:
     """Factory for StockAgent instance for orchestration workflows."""
     if client is None:
         client = AzureAIAgentClient(async_credential=AzureCliCredential())
