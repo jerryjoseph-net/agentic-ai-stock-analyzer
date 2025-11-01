@@ -25,7 +25,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def create_stock_analyzer_orchestrator(client: AzureAIAgentClient):
+def create_stock_analyzer_orchestrator(client: AzureAIAgentClient) -> Any:
     """Factory function to create StockAnalyzerOrchestrator as an AI agent with other agents as tools."""
 
     async def delegate_to_stock_agent(
@@ -81,14 +81,14 @@ class StockAnalyzerOrchestrator:
     - Manages Azure AI client lifecycle for the agent ecosystem
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the orchestrator agent."""
         self._stack = AsyncExitStack()
-        self._client = None
-        self._orchestrator_agent = None
+        self._client: Any = None
+        self._orchestrator_agent: Any = None
         logger.info("StockAnalyzerOrchestrator (AI agent) initialized")
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "StockAnalyzerOrchestrator":
         credential = await self._stack.enter_async_context(AzureCliCredential())
         self._client = await self._stack.enter_async_context(
             AzureAIAgentClient(async_credential=credential)
@@ -96,7 +96,7 @@ class StockAnalyzerOrchestrator:
         self._orchestrator_agent = create_stock_analyzer_orchestrator(self._client)
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         await self._stack.aclose()
 
     async def analyze_stock(self, query: str) -> str:
