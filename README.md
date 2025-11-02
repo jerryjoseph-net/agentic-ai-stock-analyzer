@@ -223,13 +223,11 @@ agentic-ai-stock-analyzer/
 ├── tests/
 │   ├── conftest.py                         # 🔧 Pytest configuration
 │   ├── unit/                               # 🧪 Unit tests (mocked dependencies)
-│   │   ├── __init__.py
 │   │   └── test_stock_agent.py        
 │   ├── integration/                        # 🔗 Integration tests 
-│   │   ├── __init__.py
-│   │   ├── test_azure_integration.py  
 │   │   ├── test_azure_live.py         
-│   │   └── test_integration.py        
+│   │   ├── test_integration.py  
+│   │   └── test_orchestrator_live.py        
 │   └── e2e/                                # 🎯 End-to-end tests
 │       └── test_deployed_agent.py     
 ├── pyproject.toml                          # 🐍 Python project configuration (dependencies, tools, metadata)
