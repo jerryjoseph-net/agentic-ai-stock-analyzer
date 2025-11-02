@@ -7,6 +7,7 @@ from src.agents.stock_analyzer_orchestrator import StockAnalyzerOrchestrator
 class TestStockAnalyzerOrchestratorIntegration:
     """Integration tests for the StockAnalyzerOrchestrator."""
     
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_orchestrator_delegates_to_stock_agent(self):
         """Test that orchestrator properly delegates to StockAgent and returns real stock data."""
@@ -18,6 +19,7 @@ class TestStockAnalyzerOrchestratorIntegration:
             assert "$" in result, "Result should contain price information with $ symbol"
             assert len(result) > 20, "Should return meaningful stock response"
     
+    @pytest.mark.live
     @pytest.mark.asyncio
     async def test_orchestrator_returns_valid_stock_format(self):
         """Test that orchestrator returns properly formatted stock information."""
