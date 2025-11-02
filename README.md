@@ -163,6 +163,35 @@ uv run pytest --cov=src tests/
 uv run pytest tests/unit/test_stock_agent.py -v
 ```
 
+## � Pre-Commit Hooks
+
+Automatically run quality checks before committing to ensure code quality:
+
+### Setup Git Hooks
+```bash
+# PowerShell (Windows)
+./scripts/setup-hooks.ps1
+
+# Bash (Linux/Mac)
+bash scripts/setup-hooks.sh
+```
+
+This will install a pre-commit hook that automatically runs:
+- ✅ **Type Checking** - mypy strict mode validation
+- ✅ **Unit Tests** - all unit tests with mocked dependencies  
+- ✅ **Coverage Tests** - unit tests with code coverage (>30% required)
+- ✅ **All Tests** - all tests including integration tests
+
+If any check fails, the commit is rejected. Fix issues and try again:
+
+```bash
+# Run manual pre-commit validation anytime (Windows)
+./scripts/pre-commit.ps1
+
+# Run manual pre-commit validation anytime (Linux/Mac)
+bash scripts/pre-commit.sh
+```
+
 ## 📁 Project Structure
 
 ```
