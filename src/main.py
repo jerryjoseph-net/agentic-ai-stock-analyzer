@@ -13,7 +13,7 @@ load_dotenv()
 logging.getLogger("agent_framework._clients").setLevel(logging.ERROR)
 logging.getLogger("agent_framework").setLevel(logging.ERROR)
 
-async def main():
+async def main() -> None:
     if len(sys.argv) > 1:
         query = " ".join(sys.argv[1:])
     else:

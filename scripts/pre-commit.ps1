@@ -1,39 +1,37 @@
 #!/usr/bin/env pwsh
-# pre-commit.ps1 - Run type checking and tests before commit
+# pre-commit.ps1 - Run quality checks and tests before commit
 
 Write-Host "Running type check..."
-$TypeCheckResult = & ./scripts/type-check.ps1
+uv run mypy src/ --ignore-missing-imports
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Type check failed. Aborting commit."
+    Write-Host "Type check failed. Aborting commit." -ForegroundColor Red
     exit 1
 }
-Write-Host "Type check passed."
-
-
+Write-Host "Type check passed!" -ForegroundColor Green
 
 Write-Host "Running unit tests..."
-$UnitTestResult = & .venv/Scripts/python.exe -m pytest tests/unit/ -v
+uv run pytest tests/unit/ -v
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Unit tests failed. Aborting commit."
+    Write-Host "Unit tests failed. Aborting commit." -ForegroundColor Red
     exit 1
 }
-Write-Host "Unit tests passed."
+Write-Host "Unit tests passed!" -ForegroundColor Green
 
 Write-Host "Running unit tests with coverage..."
-$CoverageResult = & .venv/Scripts/python.exe -m pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-fail-under=30
+uv run pytest tests/unit/ -v --cov=src --cov-report=term-missing --cov-fail-under=30
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Unit test coverage below 30%. Aborting commit."
+    Write-Host "Unit test coverage below 30%. Aborting commit." -ForegroundColor Red
     exit 1
 }
-Write-Host "Unit test coverage is above 30%."
+Write-Host "Unit test coverage is above 30%." -ForegroundColor Green
 
 Write-Host "Running all tests..."
-$AllTestResult = & .venv/Scripts/python.exe -m pytest tests/ -v
+uv run pytest tests/ -v
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Some tests failed. Aborting commit."
+    Write-Host "All tests failed. Aborting commit." -ForegroundColor Red
     exit 1
 }
-Write-Host "All tests passed."
+Write-Host "All tests passed!" -ForegroundColor Green
 
-Write-Host "Pre-commit checks passed. You may commit now."
+Write-Host "Pre-commit checks passed. You may commit now." -ForegroundColor Green
 exit 0
